@@ -128,7 +128,7 @@ module Paperclip
           # Copy the audio track from the video to a temporary wav file
           tmp_wav_file = Tempfile.new([@basename, ".wav"])
           tmp_wav_file.binmode
-          Paperclip.run("ffmpeg", "-i :source -acodec pcm_s16le :audio -y", :source => File.expand_path(src.path), :audio => File.expand_path(tmp_wav_file.path))
+          Paperclip.run("ffmpeg", "-y -i :source -acodec pcm_s16le :audio", :source => File.expand_path(src.path), :audio => File.expand_path(tmp_wav_file.path))
           # Run normalization on the wav file
           Paperclip.run('normalize-audio', ":audio", :audio => File.expand_path(tmp_wav_file.path))
           # Encode final file with normalized audio track
