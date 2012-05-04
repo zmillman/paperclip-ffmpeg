@@ -127,14 +127,16 @@ module Paperclip
           # Copy the audio track from the video to a temporary wav file
           tmp_wav_file = Tempfile.new([@basename, ".wav"])
           tmp_wav_file.binmode
-          Paperclip.run("ffmpeg", "-i :source -acodec pcm_s16le :audio -y", :source => File.expand_path(src.path), :dest => File.expand_path(tmp_wav_file.path))
+          Paperclip.run("ffmpeg", "-i :source -acodec pcm_s16le :audio -y", :source => File.expand_path(src.path), :audio => File.expand_path(tmp_wav_file.path))
           # Run normalization on the wav file
           Paperclip.run('normalize-audio', ":audio", :audio => File.expand_path(tmp_wav_file.path))
+          # Encode final file with normalized audio track
+          Paperclip.run("ffmpeg", parameters, :source => File.expand_path(src.path), :dest => File.expand_path(dst.path), :audio => File.expand_path(tmp_wav_file.path))
+        
+        else
+          Paperclip.run("ffmpeg", parameters, :source => File.expand_path(src.path), :dest => File.expand_path(dst.path))
+          
         end
-        
-        # Encode final file with normalized audio track
-        Paperclip.run("ffmpeg", parameters, :source => File.expand_path(src.path), :dest => File.expand_path(dst.path), :audio => File.expand_path(tmp_wav_file.path))
-        
       rescue Cocaine::ExitStatusError => e
         raise PaperclipError, "error while processing video for #{@basename}: #{e}" if @whiny
       end
