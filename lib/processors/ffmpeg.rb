@@ -132,7 +132,7 @@ module Paperclip
           # Run normalization on the wav file
           Paperclip.run('normalize-audio', ":audio", :audio => File.expand_path(tmp_wav_file.path))
           # Encode final file with normalized audio track
-          Paperclip.run("ffmpeg", parameters, :source => File.expand_path(src.path), :dest => File.expand_path(dst.path), :audio => File.expand_path(tmp_wav_file.path))
+          Paperclip.run("ffmpeg", parameters + ' 2>/tmp/paperclip-ffmpeg.log', :source => File.expand_path(src.path), :dest => File.expand_path(dst.path), :audio => File.expand_path(tmp_wav_file.path))
           tmp_wav_file.close
           tmp_wav_file.unlink
         else
