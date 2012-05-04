@@ -63,6 +63,8 @@ See [danielgtaylor/qtfaststart](https://github.com/danielgtaylor/qtfaststart) fo
 Normalizing Audio
 -----------------
 
+
+
 In your model:
 
     class Lesson < ActiveRecord::Base
@@ -70,6 +72,8 @@ In your model:
           :release => {:geometry => "400x300", :format => 'mp4', :normalize_audio => true}
       }, :processors => [:ffmpeg]
     end
+
+
 
 License
 -------

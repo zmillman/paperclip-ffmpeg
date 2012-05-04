@@ -38,6 +38,7 @@ module Paperclip
       @normalize_audio = options[:normalize_audio]
       attachment.instance_write(:meta, @meta)
     end
+    
     # Performs the transcoding of the +file+ into a thumbnail/video. Returns the Tempfile
     # that contains the new image/video.
     def make
@@ -113,7 +114,7 @@ module Paperclip
       parameters << @convert_options[:input].map { |k,v| "-#{k.to_s} #{v} "}
       parameters << "-i :source"
       if @normalize_audio
-        # adds an additional input, taking video stream from first input and audio from the second
+        # adds an additional input stream, taking video from the first, and audio from the second
         parameters << "-i :audio -map 0:v -map 1:a"
       end
       parameters << @convert_options[:output].map { |k,v| "-#{k.to_s} #{v} "}
@@ -132,7 +133,8 @@ module Paperclip
           Paperclip.run('normalize-audio', ":audio", :audio => File.expand_path(tmp_wav_file.path))
           # Encode final file with normalized audio track
           Paperclip.run("ffmpeg", parameters, :source => File.expand_path(src.path), :dest => File.expand_path(dst.path), :audio => File.expand_path(tmp_wav_file.path))
-        
+          tmp_wav_file.close
+          tmp_wav_file.unlink
         else
           Paperclip.run("ffmpeg", parameters, :source => File.expand_path(src.path), :dest => File.expand_path(dst.path))
           
