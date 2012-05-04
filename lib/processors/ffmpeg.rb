@@ -35,6 +35,7 @@ module Paperclip
       @basename        = File.basename(@file.path, @current_format)
       @meta            = identify
       @pad_color       = options[:pad_color].nil? ? "black" : options[:pad_color]
+      @normalize_audio = options[:normalize_audio]
       attachment.instance_write(:meta, @meta)
     end
     # Performs the transcoding of the +file+ into a thumbnail/video. Returns the Tempfile
@@ -111,6 +112,10 @@ module Paperclip
       # Add source
       parameters << @convert_options[:input].map { |k,v| "-#{k.to_s} #{v} "}
       parameters << "-i :source"
+      if @normalize_audio
+        # adds an additional input, taking video stream from first input and audio from the second
+        parameters << "-i :audio -map 0:v -map 1:a"
+      end
       parameters << @convert_options[:output].map { |k,v| "-#{k.to_s} #{v} "}
       parameters << ":dest"
 
@@ -118,7 +123,18 @@ module Paperclip
       
       Paperclip.log("[ffmpeg] #{parameters}")
       begin
-        success = Paperclip.run("ffmpeg", parameters, :source => "#{File.expand_path(src.path)}", :dest => File.expand_path(dst.path))
+        if @normalize_audio
+          # Copy the audio track from the video to a temporary wav file
+          tmp_wav_file = Tempfile.new([@basename, ".wav"])
+          tmp_wav_file.binmode
+          Paperclip.run("ffmpeg", "-i :source -acodec pcm_s16le :audio -y", :source => File.expand_path(src.path), :dest => File.expand_path(tmp_wav_file.path))
+          # Run normalization on the wav file
+          Paperclip.run('normalize-audio', ":audio", :audio => File.expand_path(tmp_wav_file.path))
+        end
+        
+        # Encode final file with normalized audio track
+        Paperclip.run("ffmpeg", parameters, :source => File.expand_path(src.path), :dest => File.expand_path(dst.path), :audio => File.expand_path(tmp_wav_file.path))
+        
       rescue Cocaine::ExitStatusError => e
         raise PaperclipError, "error while processing video for #{@basename}: #{e}" if @whiny
       end

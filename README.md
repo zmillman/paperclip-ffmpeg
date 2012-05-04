@@ -60,6 +60,17 @@ In your model:
 
 See [danielgtaylor/qtfaststart](https://github.com/danielgtaylor/qtfaststart) for instructions on how to setup qtfaststart.
 
+Normalizing Audio
+-----------------
+
+In your model:
+
+    class Lesson < ActiveRecord::Base
+      has_attached_file :video, :styles => {
+          :release => {:geometry => "400x300", :format => 'mp4', :normalize_audio => true}
+      }, :processors => [:ffmpeg]
+    end
+
 License
 -------
 
