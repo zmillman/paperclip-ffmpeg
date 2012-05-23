@@ -125,14 +125,16 @@ module Paperclip
       Paperclip.log("[ffmpeg] #{parameters}")
       begin
         if @normalize_audio
+          log_file = '/home/ubuntu/apps/magoosh_app/current/log/paperclip-ffmpeg.log'
           # Copy the audio track from the video to a temporary wav file
           tmp_wav_file = Tempfile.new([@basename, ".wav"])
           tmp_wav_file.binmode
-          Paperclip.run("ffmpeg", "-y -i :source -acodec pcm_s16le :audio", :source => File.expand_path(src.path), :audio => File.expand_path(tmp_wav_file.path))
+          Paperclip.run("ffmpeg", "-y -i :source -acodec pcm_s16le :audio 2>> :logfile", :source => File.expand_path(src.path), :audio => File.expand_path(tmp_wav_file.path), :logfile => log_file)
           # Run normalization on the wav file
-          Paperclip.run('normalize-audio', ":audio", :audio => File.expand_path(tmp_wav_file.path))
+          Paperclip.run('normalize-audio', ":audio 2>> :logfile", :audio => File.expand_path(tmp_wav_file.path), :logfile => log_file)
           # Encode final file with normalized audio track
-          Paperclip.run("ffmpeg", parameters, :source => File.expand_path(src.path), :dest => File.expand_path(dst.path), :audio => File.expand_path(tmp_wav_file.path))
+          parameters += ' 2>> :logfile'
+          Paperclip.run("ffmpeg", parameters, :source => File.expand_path(src.path), :dest => File.expand_path(dst.path), :audio => File.expand_path(tmp_wav_file.path), :logfile => log_file)
           tmp_wav_file.close
           tmp_wav_file.unlink
         else
