@@ -125,7 +125,7 @@ module Paperclip
       Paperclip.log("[ffmpeg] #{parameters}")
       begin
         if @normalize_audio
-          log_file = '/home/ubuntu/apps/magoosh_app/current/log/paperclip-ffmpeg.log'
+          log_file = '/dev/null' # we send stderr output to /dev/null -- TODO: better logging location
           # Copy the audio track from the video to a temporary wav file
           tmp_wav_file = Tempfile.new([@basename, ".wav"])
           tmp_wav_file.binmode
@@ -139,7 +139,6 @@ module Paperclip
           tmp_wav_file.unlink
         else
           Paperclip.run("ffmpeg", parameters, :source => File.expand_path(src.path), :dest => File.expand_path(dst.path))
-          
         end
       rescue Cocaine::ExitStatusError => e
         raise PaperclipError, "error while processing video for #{@basename}: #{e}" if @whiny
