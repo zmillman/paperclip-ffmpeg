@@ -141,7 +141,7 @@ module Paperclip
           Paperclip.run("ffmpeg", parameters, :source => File.expand_path(src.path), :dest => File.expand_path(dst.path))
         end
       rescue Cocaine::ExitStatusError => e
-        raise PaperclipError, "error while processing video for #{@basename}: #{e}" if @whiny
+        raise Paperclip::Error, "error while processing video for #{@basename}: #{e}" if @whiny
       end
 
       dst
